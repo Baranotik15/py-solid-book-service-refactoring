@@ -1,6 +1,18 @@
-from app.display import *
-from app.serialize import *
-from  app.print_book import *
+from app.display import (
+    DisplayType,
+    ConsoleDisplayType,
+    ReverseDisplayType
+)
+from app.serialize import (
+    SerializeType,
+    JsonSerialize,
+    XmlSerialize
+)
+from app.print_book import (
+    PrintType,
+    PrintConsoleType,
+    PrintDisplayType
+)
 
 
 class Book:

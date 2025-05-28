@@ -19,6 +19,6 @@ class XmlSerialize(SerializeType):
         root = ET.Element("book")
         titl = ET.SubElement(root, "title")
         titl.text = title
-        contents = ET.SubElement(root, "content")
-        contents.text = content
+        content_ = ET.SubElement(root, "content")
+        content_.text = content
         return ET.tostring(root, encoding="unicode")
