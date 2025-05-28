@@ -1,5 +1,29 @@
 import json
 import xml.etree.ElementTree as ET
+from abc import ABC, abstractmethod
+
+
+class DisplayType(ABC):
+
+    @abstractmethod
+    def display(self) -> None:
+        pass
+
+
+class ConsoleDisplayType(DisplayType):
+    def __init__(self, content):
+        self.content = content
+
+    def display(self) -> None:
+        print(self.content)
+
+
+class ReverseDisplayType(DisplayType):
+    def __init__(self, content):
+        self.content = content[::-1]
+
+    def display(self) -> None:
+        print(self.content)
 
 
 class Book:
@@ -7,13 +31,9 @@ class Book:
         self.title = title
         self.content = content
 
-    def display(self, display_type: str) -> None:
-        if display_type == "console":
-            print(self.content)
-        elif display_type == "reverse":
-            print(self.content[::-1])
-        else:
-            raise ValueError(f"Unknown display type: {display_type}")
+    @staticmethod
+    def display(display_type: DisplayType) -> None:
+        display_type.display()
 
     def print_book(self, print_type: str) -> None:
         if print_type == "console":
@@ -41,8 +61,15 @@ class Book:
 
 def main(book: Book, commands: list[tuple[str, str]]) -> None | str:
     for cmd, method_type in commands:
+
         if cmd == "display":
-            book.display(method_type)
+            if method_type == "console":
+                book.display(ConsoleDisplayType(book.content))
+            elif method_type == "reverse":
+                book.display(ReverseDisplayType(book.content))
+            else:
+                raise ValueError(f"Unknown display type: {method_type}")
+
         elif cmd == "print":
             book.print_book(method_type)
         elif cmd == "serialize":
