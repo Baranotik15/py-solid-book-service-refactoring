@@ -26,6 +26,26 @@ class ReverseDisplayType(DisplayType):
         print(self.content)
 
 
+class PrintType(ABC):
+
+    @abstractmethod
+    def print_book(self, title: str, content: str) -> None:
+        pass
+
+
+class PrintConsoleType(PrintType):
+    def print_book(self, title: str, content: str) -> None:
+        print(f"Printing the book: {title}...")
+        print(content)
+
+
+class PrintDisplayType(PrintType):
+    def print_book(self, title: str, content: str) -> None:
+        print(f"Printing the book in reverse: {title}...")
+        print(content[::-1])
+
+
+
 class Book:
     def __init__(self, title: str, content: str):
         self.title = title
@@ -35,15 +55,8 @@ class Book:
     def display(display_type: DisplayType) -> None:
         display_type.display()
 
-    def print_book(self, print_type: str) -> None:
-        if print_type == "console":
-            print(f"Printing the book: {self.title}...")
-            print(self.content)
-        elif print_type == "reverse":
-            print(f"Printing the book in reverse: {self.title}...")
-            print(self.content[::-1])
-        else:
-            raise ValueError(f"Unknown print type: {print_type}")
+    def print_book(self, print_type: PrintType) -> None:
+        print_type.print_book(self.title, self.content)
 
     def serialize(self, serialize_type: str) -> str:
         if serialize_type == "json":
@@ -71,7 +84,14 @@ def main(book: Book, commands: list[tuple[str, str]]) -> None | str:
                 raise ValueError(f"Unknown display type: {method_type}")
 
         elif cmd == "print":
-            book.print_book(method_type)
+            if method_type == "console":
+                book.print_book(PrintConsoleType())
+            elif method_type == "reverse":
+                book.print_book(PrintDisplayType())
+            else:
+                raise ValueError(f"Unknown print type: {method_type}")
+
+
         elif cmd == "serialize":
             return book.serialize(method_type)
 
