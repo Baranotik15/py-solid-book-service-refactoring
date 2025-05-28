@@ -1,5 +1,5 @@
 import json
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # noqa
 from abc import ABC, abstractmethod
 
 
@@ -11,7 +11,7 @@ class DisplayType(ABC):
 
 
 class ConsoleDisplayType(DisplayType):
-    def __init__(self, content):
+    def __init__(self, content: str) -> None:
         self.content = content
 
     def display(self) -> None:
@@ -19,7 +19,7 @@ class ConsoleDisplayType(DisplayType):
 
 
 class ReverseDisplayType(DisplayType):
-    def __init__(self, content):
+    def __init__(self, content: str) -> None:
         self.content = content[::-1]
 
     def display(self) -> None:
@@ -45,9 +45,33 @@ class PrintDisplayType(PrintType):
         print(content[::-1])
 
 
+class SerializeType(ABC):
+    def __init__(self, title: str, content: str) -> None:
+        self.title = title
+        self.content = content
+
+    @abstractmethod
+    def serialize(self) -> str:
+        pass
+
+
+class JsonSerialize(SerializeType):
+    def serialize(self) -> str:
+        return json.dumps({"title": self.title, "content": self.content})
+
+
+class XmlSerialize(SerializeType):
+    def serialize(self) -> str:
+        root = ET.Element("book")
+        title = ET.SubElement(root, "title")
+        title.text = self.title
+        content = ET.SubElement(root, "content")
+        content.text = self.content
+        return ET.tostring(root, encoding="unicode")
+
 
 class Book:
-    def __init__(self, title: str, content: str):
+    def __init__(self, title: str, content: str) -> None:
         self.title = title
         self.content = content
 
@@ -58,18 +82,9 @@ class Book:
     def print_book(self, print_type: PrintType) -> None:
         print_type.print_book(self.title, self.content)
 
-    def serialize(self, serialize_type: str) -> str:
-        if serialize_type == "json":
-            return json.dumps({"title": self.title, "content": self.content})
-        elif serialize_type == "xml":
-            root = ET.Element("book")
-            title = ET.SubElement(root, "title")
-            title.text = self.title
-            content = ET.SubElement(root, "content")
-            content.text = self.content
-            return ET.tostring(root, encoding="unicode")
-        else:
-            raise ValueError(f"Unknown serialize type: {serialize_type}")
+    @staticmethod
+    def serialize(serializer: SerializeType) -> str:
+        return serializer.serialize()
 
 
 def main(book: Book, commands: list[tuple[str, str]]) -> None | str:
@@ -91,9 +106,13 @@ def main(book: Book, commands: list[tuple[str, str]]) -> None | str:
             else:
                 raise ValueError(f"Unknown print type: {method_type}")
 
-
         elif cmd == "serialize":
-            return book.serialize(method_type)
+            if method_type == "json":
+                return book.serialize(JsonSerialize(book.title, book.content))
+            elif method_type == "xml":
+                return book.serialize(XmlSerialize(book.title, book.content))
+            else:
+                raise ValueError(f"Unknown serialize type: {method_type}")
 
 
 if __name__ == "__main__":
